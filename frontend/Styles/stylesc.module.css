@@ -2,121 +2,121 @@
 
 /* Contenedor principal de la página */
 .habitsContainer {
-    display: flex;
-    background-color: #ffffffc9;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 5px;
-    font-family: Arial, sans-serif;
-  }
-  
-  /* Título principal */
-  .habitsContainer h1 {
-    font-size: 2rem;
-    color: #0D1B2A;
-    margin-bottom: 5px;
-  }
-  
-  /* Barra de progreso */
-  .progressBarContainer {
-    width: 90%;
-    height: 20px;
-    background-color: #e0e1ddb0;
-    border-radius: 10px;
-    margin: 5px 0;
-  }
-  
-  .progressBar {
-    height: 100%;
-    background-color: #F7C548;
-    border-radius: 10px;
-    transition: width 0.3s ease-in-out;
-  }
-  
-  /* Estilos para los hábitos */
-  .habitItem {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 30%;
-    height: 200px;
-    padding: 20px;
-    background-color: #778DA9;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    margin: 5px 0;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Centrar el nombre y darle un poco de margen */
-  .habitItem h2 {
-    font-size: 1.5rem;
-    color: #fff;
-    text-align: center; /* Centrar el nombre */
-    margin-bottom: 0px; /* Espacio entre el nombre y la descripción */
-  }
-  
-  /* Descripción */
-  .habitItem p {
-    font-size: 1rem;
-    color: #fff;
-    text-align: center; /* Centrar la descripción */
-    margin-top: 5px; /* Espacio entre la descripción y la barra de progreso */
-  }
-  
-  
-  /*Boton de tarea completada*/
-  .buttontask{
-    background-color: #E0E1DD;
-    color: rgb(0, 0, 0);
-    padding: 5px 10px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 250px;
-  }
+  display: flex;
+  background-color: #b4afaf;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 5px;
+  /* Eliminar font-family aquí ya que se maneja en globals.css */
+}
 
-  .buttontask:hover{
-    background-color: #e0e1dda1;
-  }
+/* Título principal */
+.habitsContainer h1 {
+  font-size: 2rem;
+  color: #0D1B2A;
+  margin-bottom: 5px;
+}
 
-  /*Boton para añadir ahabito*/
-  .addHabitBtn {
-    background-color: #f1dea2;
-    color: rgb(0, 0, 0);
-    padding: 10px 20px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 5px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    width: 250px;
-  }
-  .addHabitBtn:hover {
-    background-color: #d1bb71d7;
-  }
-  
-  .input{
-    margin-bottom: 5px;
-    width: 32%;
-    height: 45px;
-    background-color: #e0e1ddb0;
-    border: 1px solid #ccc;
-    font-family: Arial, sans-serif;
-  }
+/* Barra de progreso */
+.progressBarContainer {
+  width: 90%;
+  height: 20px;
+  background-color: #e0e1ddb0;
+  border-radius: 10px;
+  margin: 5px 0;
+}
 
-  .inputd{
-    margin-bottom: 5px;
-    width: 32%;
-    height: 45px;
-    background-color: #e0e1ddb0;
-    border: 1px solid #ccc;
-    font-family: Arial, sans-serif;
-  }
+.progressBar {
+  height: 100%;
+  background-color: #F7C548;
+  border-radius: 10px;
+  transition: width 0.3s ease-in-out;
+}
 
-  .progressday{
-    align-items: right;
-  }
+/* Estilos para los hábitos */
+.habitItem {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 30%;
+  height: 200px;
+  padding: 20px;
+  background-color: #778DA9;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  margin: 5px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Centrar el nombre y darle un poco de margen */
+.habitItem h2 {
+  font-size: 1.5rem;
+  color: #fff;
+  text-align: center; /* Centrar el nombre */
+  margin-bottom: 0px; /* Espacio entre el nombre y la descripción */
+}
+
+/* Descripción */
+.habitItem p {
+  font-size: 1rem;
+  color: #fff;
+  text-align: center; /* Centrar la descripción */
+  margin-top: 5px; /* Espacio entre la descripción y la barra de progreso */
+}
+
+/* Boton de tarea completada */
+.buttontask {
+  background-color: #E0E1DD;
+  color: rgb(0, 0, 0);
+  padding: 5px 10px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 250px;
+}
+
+.buttontask:hover {
+  background-color: #e0e1dda1;
+}
+
+/* Boton para añadir hábito */
+.addHabitBtn {
+  background-color: #f1dea2;
+  color: rgb(0, 0, 0);
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  width: 250px;
+}
+
+.addHabitBtn:hover {
+  background-color: #d1bb71d7;
+}
+
+.input {
+  margin-bottom: 5px;
+  width: 32%;
+  height: 45px;
+  background-color: #e0e1ddb0;
+  border: 1px solid #ccc;
+  /* Eliminar font-family aquí ya que se maneja en globals.css */
+}
+
+.inputd {
+  margin-bottom: 5px;
+  width: 32%;
+  height: 45px;
+  background-color: #e0e1ddb0;
+  border: 1px solid #ccc;
+  /* Eliminar font-family aquí ya que se maneja en globals.css */
+}
+
+.progressday {
+  align-items: right;
+}

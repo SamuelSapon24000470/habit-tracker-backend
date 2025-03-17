@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import styles from '@/Styles/stylesc.module.css';
+import '@/app/globals.css';  // Asegúrate de que este archivo esté importado.
+import styles from '@/Styles/stylesc.module.css';  // Esto se mantiene como está.
 import { setHabits, incrementCompletedDays } from '../store/habitSlice'; // Asegúrate de importar setHabits
 
 export default function HabitsPage() {
@@ -55,7 +56,8 @@ export default function HabitsPage() {
 
   // Mostrar los hábitos en la interfaz
   return (
-    <div className={styles.habitsContainer}>
+    <div className={`p-4 ${styles.habitsContainer}`}>
+
       <h1>Mis Hábitos</h1>
       {Array.isArray(habits) && habits.length > 0 ? (
         habits.map((habit) => (

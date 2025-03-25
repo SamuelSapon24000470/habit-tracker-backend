@@ -1,14 +1,21 @@
 'use client'; // Importante para que se ejecute en el cliente
 
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../store"; // IMPORTANTE
+import { markAsDoneThunk, setHabits } from '../store/habitSlice';
 import '@/app/globals.css';  // Asegúrate de que este archivo esté importado.
 import styles from '@/Styles/stylesc.module.css';  // Esto se mantiene como está.
-import { setHabits, incrementCompletedDays } from '../store/habitSlice'; // Asegúrate de importar setHabits
 
 export default function HabitsPage() {
-  const habits = useSelector((state: any) => state.habits.habits);
-  const dispatch = useDispatch();
+  const habits = useSelector((state: RootState) => {
+    console.log("Estado actual de Redux:", state.habits); // ← Añade esto
+    return state.habits.habits;
+  });
+  const dispatch = useDispatch<AppDispatch>(); // Tipar correctamente `dispatch`
+
+  const status = useSelector((state: RootState) => state.habits.status); // Tipado
+  const err = useSelector((state: RootState) => state.habits.error); // Tipado
 
   const [newHabitName, setNewHabitName] = useState('');
   const [newHabitDescription, setNewHabitDescription] = useState('');
@@ -18,22 +25,18 @@ export default function HabitsPage() {
     fetch('http://localhost:5000/api/habits')
       .then((response) => response.json())
       .then((data) => {
-        dispatch(setHabits(data)); // Despacha la acción para almacenar los hábitos en Redux
+        console.log("Datos recibidos del backend:", data); // ← ¡Añade esto!
+        dispatch(setHabits(data));
       })
       .catch((error) => console.error('Error al obtener hábitos:', error));
-  }, [dispatch]); // Solo se ejecuta una vez al cargar el componente
-
-  // Función para manejar el clic en "Tarea Completada"
-  const handleTaskCompleted = (habitId: string) => {
-    dispatch(incrementCompletedDays(habitId)); // Despachamos la acción para actualizar los días completados
-  };
+  }, [dispatch]);
 
   // Función para manejar el envío del formulario
   const handleAddHabit = () => {
     const newHabit = {
       name: newHabitName,
       description: newHabitDescription,
-      completedDays: 0,
+      days: 0,  // Aquí inicializas completedDays en 0
     };
 
     // Enviar el nuevo hábito al backend
@@ -54,36 +57,46 @@ export default function HabitsPage() {
       .catch((error) => console.error('Error al agregar hábito:', error));
   };
 
+  // Función para marcar como hecho
+  const handleMarkAsDone = (habitId: string) => {
+    dispatch(markAsDoneThunk(habitId)); // Despachamos la acción para marcar el hábito como completado
+  };
+
   // Mostrar los hábitos en la interfaz
   return (
+    
     <div className={`p-4 ${styles.habitsContainer}`}>
-
       <h1>Mis Hábitos</h1>
       {Array.isArray(habits) && habits.length > 0 ? (
-        habits.map((habit) => (
-          <div key={habit._id} className={styles.habitItem}>
-            <h2>{habit.name}</h2>
-            <p>{habit.description}</p>
-            <div className={styles.progressBarContainer}>
-              <div
-                className={styles.progressBar}
-                style={{
-                  width: `${(habit.completedDays / 30) * 100}%`, // Meta de 30 días
-                }}
-              />
-            </div>
-            <p>{habit.completedDays} días</p>
-            <button
-              className={styles.buttontask}
-              onClick={() => handleTaskCompleted(habit._id)} // Llama a la función al hacer clic
-            >
-              Tarea Completada
-            </button>
-          </div>
-        ))
-      ) : (
-        <p>No hay hábitos para mostrar.</p>
-      )}
+  habits.map((habit) => (
+    <div key={habit._id} className={styles.habitItem}>
+      <h2>{habit.name}</h2>
+      <p>{habit.description}</p>
+      <div className={styles.progressBarContainer}>
+  <div
+    className={styles.progressBar}
+    style={{
+      width: `${(habit.days / 66) * 100}%`, // Usa completedDays aquí
+       //backgroundColor: habit.days >= 66 ? "green" : habit.days >= 20 ? "yellow" : "red"
+    }}
+  />
+</div>
+
+      <p>{habit.days} días</p>
+      <button
+        className={styles.buttontask}
+        onClick={() => dispatch(markAsDoneThunk(habit._id))}
+      >
+        {status[habit._id] === "loading" ? "Processing" : "Tarea Completada"}
+      </button>
+      {status[habit._id] === "failed" && <span >{err[habit._id]}</span>}
+      {status[habit._id] === "success" && <span >Tarea marcada como completada</span>}
+    </div>
+  ))
+) : (
+  <p>No hay hábitos para mostrar.</p>
+)}
+
 
       {/* Formulario para agregar un nuevo hábito */}
       <h2>Agregar Nuevo Hábito</h2>

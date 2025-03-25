@@ -1,6 +1,5 @@
 const express = require("express");
 const Habit = require("../models/habit");
-
 const router = express.Router();
 
 // Crear un hábito
@@ -8,7 +7,7 @@ router.post("/", async (req, res) => {
   try {
     const habit = new Habit(req.body);
     await habit.save();
-    res.status(201).json(habit);
+    res.status(200).json(habit);
   } catch (error) {
     res.status(500).json({ error: "Error al crear el hábito" });
   }
@@ -34,28 +33,48 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// Actualizar un hábito
-router.put("/:id", async (req, res) => {
+// Marcar o reiniciar habito
+// Helper para calcular diferencia en horas
+const timeDifferenceInHours = (date1, date2) => {
+  return Math.abs(date1 - date2) / (1000 * 60 * 60);
+};
+
+// Marcar hábito como completado
+router.patch('/markAsDone/:id', async (req, res) => {
   try {
-    // Si solo quieres incrementar el contador de días, actualizamos solo ese campo
-    const updatedHabit = await Habit.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { completedDays: 1 } }, // Incrementa completedDays en 1
-      { new: true } // Devuelve el hábito actualizado
-    );
-    if (!updatedHabit) {
-      return res.status(404).json({ message: "Hábito no encontrado" });
+    const habit = await Habit.findById(req.params.id);
+    
+    if (!habit) {
+      return res.status(404).json({ error: "Hábito no encontrado" });
     }
-    res.json(updatedHabit);
+
+    const now = new Date();
+    const hoursSinceLastUpdate = timeDifferenceInHours(now, habit.lastUpdate);
+
+    if (hoursSinceLastUpdate < 24) {
+      habit.days += 1;
+    } else {
+      habit.days = 1; // Reinicia el contador
+      
+    }
+
+    habit.lastUpdate = now;
+    habit.lastDone = now;
+    await habit.save();
+
+    // Devuelve el hábito actualizado
+    res.status(200).json({
+      _id: habit._id,
+      name: habit.name,
+      days: habit.days,
+      lastUpdate: habit.lastUpdate,
+      lastDone: habit.lastDone,
+    });
+
   } catch (error) {
+    console.error("Error en PATCH /markAsDone:", error); // Log detallado
     res.status(500).json({ error: "Error al actualizar el hábito" });
   }
 });
-
-
-
-
-
-
   
 module.exports = router;

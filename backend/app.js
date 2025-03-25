@@ -5,7 +5,6 @@ const cors = require('cors'); // Asegúrate de importar cors
 
 var app = express(); // Inicializa la app aquí
 
-// Habilitar CORS para todos los orígenes
 app.use(cors());
 
 var path = require('path');
@@ -14,6 +13,14 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+
+// Habilitar CORS para todos los orígenes
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE']
+}));
 
 app.use(logger('dev'));
 app.use(express.json());

@@ -1,9 +1,25 @@
 const express = require("express");
 const Habit = require("../models/habit");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
+
+const authenticateToken = (req, res, next) => {
+  const token = req.header("Authorization");
+  if (!token) return res.status(401).json({ message: "Acceso no autorizado" });
+
+  try {
+    const tokenWithoutBearer = token.replace("Bearer ", ""); // ¡Espacio después de Bearer!
+    const verified = jwt.verify(tokenWithoutBearer, process.env.JWT_SECRET);
+    req.user = verified;
+    next();
+  } catch (error) {
+    console.error("Error al verificar token:", error); // Log detallado
+    res.status(401).json({ message: "Token inválido" });
+  }
+};
 
 // Crear un hábito
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
   try {
     const habit = new Habit(req.body);
     await habit.save();
@@ -14,9 +30,9 @@ router.post("/", async (req, res) => {
 });
 
 // Obtener todos los hábitos
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
   try {
-    const habits = await Habit.find();
+    const habits = await Habit.find({ owner: req.user._id });
     res.json(habits);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener los hábitos" });
@@ -24,7 +40,7 @@ router.get("/", async (req, res) => {
 });
 
 // Eliminar un hábito
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     await Habit.findByIdAndDelete(req.params.id);
     res.json({ message: "Hábito eliminado" });
@@ -40,7 +56,7 @@ const timeDifferenceInHours = (date1, date2) => {
 };
 
 // Marcar hábito como completado
-router.patch('/markAsDone/:id', async (req, res) => {
+router.patch('/markAsDone/:id', authenticateToken, async (req, res) => {
   try {
     const habit = await Habit.findById(req.params.id);
     

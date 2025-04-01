@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import { RootState } from '../store'; // Asegúrate de que la ruta sea correcta
+
 
 // Definimos una interfaz para los hábitos
 interface Habit {
@@ -28,26 +30,31 @@ const initialState: HabitsState = {
 
 export const markAsDoneThunk = createAsyncThunk(
   "habits/markAsDone",
-  async (habitId: string, { rejectWithValue }) => {
+  async (habitId: string, { getState, rejectWithValue }) => {
+    // 1. Obtenemos el estado con tipo seguro
+    const state = getState() as RootState;
+    
+    const token = state.user.user?.token;
+    
+    if (!token) {
+      return rejectWithValue("Usuario no autenticado");
+    }
+
     try {
       const response = await fetch(`http://localhost:5000/api/habits/markAsDone/${habitId}`, {
         method: "PATCH",
         headers: {
-          "Content-Type": "application/json", // ← Añade headers
-        },
+          "Authorization": `Bearer ${token}`
+        }
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        // Usa el mensaje de error del backend o uno por defecto
-        return rejectWithValue(data.error || "Error al actualizar el hábito");
+        throw new Error("Error en la petición");
       }
 
-      return data; // Devuelve el hábito actualizado
-
-    } catch (error) {
-      return rejectWithValue("Error de conexión con el servidor");
+      return await response.json();
+    } catch (error: any) {
+      return rejectWithValue(error.message);
     }
   }
 );

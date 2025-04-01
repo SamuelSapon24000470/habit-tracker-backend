@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import habitReducer from './habitSlice'; // Importar el reducer de hábitos
+import useReducer from '../user/userSlice'; 
 
 // Crear el store
 export const store = configureStore({
   reducer: {
     habits: habitReducer, // Asegúrate de que la clave sea 'habits'
+    user: useReducer
   },
 });
 

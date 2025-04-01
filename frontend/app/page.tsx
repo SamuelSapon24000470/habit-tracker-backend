@@ -1,121 +1,216 @@
-'use client'; // Importante para que se ejecute en el cliente
-
+'use client';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../store"; // IMPORTANTE
+import type { AppDispatch, RootState } from "../store";
 import { markAsDoneThunk, setHabits } from '../store/habitSlice';
-import '@/app/globals.css';  // Asegúrate de que este archivo esté importado.
-import styles from '@/Styles/stylesc.module.css';  // Esto se mantiene como está.
+import { fetchLoginUserThunk, fetchRegisterUserThunk} from '../user/userSlice';
+import '@/app/globals.css';
+import styles from '@/Styles/stylesc.module.css';
 
 export default function HabitsPage() {
-  const habits = useSelector((state: RootState) => {
-    console.log("Estado actual de Redux:", state.habits); // ← Añade esto
-    return state.habits.habits;
-  });
-  const dispatch = useDispatch<AppDispatch>(); // Tipar correctamente `dispatch`
+  // Estados para autenticación
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoginView, setIsLoginView] = useState(true);
 
-  const status = useSelector((state: RootState) => state.habits.status); // Tipado
-  const err = useSelector((state: RootState) => state.habits.error); // Tipado
-
+  // Estados para hábitos
   const [newHabitName, setNewHabitName] = useState('');
   const [newHabitDescription, setNewHabitDescription] = useState('');
 
-  // Obtener los hábitos de la API y almacenarlos en Redux
-  useEffect(() => {
-    fetch('http://localhost:5000/api/habits')
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Datos recibidos del backend:", data); // ← ¡Añade esto!
-        dispatch(setHabits(data));
-      })
-      .catch((error) => console.error('Error al obtener hábitos:', error));
-  }, [dispatch]);
+  // Redux
+  const habits = useSelector((state: RootState) => state.habits.habits);
+  const user = useSelector((state: RootState) => state.user.user);
+  const status = useSelector((state: RootState) => state.habits.status);
+  const err = useSelector((state: RootState) => state.habits.error);
+  const authError = useSelector((state: RootState) => state.user.error);
+  const dispatch = useDispatch<AppDispatch>();
 
-  // Función para manejar el envío del formulario
+  
+
+  useEffect(() => {
+    if (user?.token) {
+      fetch('http://localhost:5000/api/habits', {
+        headers: {
+          Authorization: `Bearer ${user.token}`
+        }
+      })
+        .then((response) => response.json())
+        .then((data) => dispatch(setHabits(data)))
+        .catch((error) => console.error('Error al obtener hábitos:', error));
+    }
+  }, [user, dispatch]);
+
+  // Handlers para auth
+  const handleAuth = async () => {
+    console.log("Intentando:", isLoginView ? "Login" : "Register");
+    try {
+      const action = isLoginView ? fetchLoginUserThunk : fetchRegisterUserThunk;
+      const result = await dispatch(action({ username, password }));
+      console.log("Resultado:", result);
+      
+      if (action.fulfilled.match(result)) {
+        console.log("Éxito! Token:", result.payload.token);
+      } else {
+        console.error("Error:", result.payload);
+      }
+    } catch (error) {
+      console.error("Error inesperado:", error);
+    }
+  };
+
   const handleAddHabit = () => {
     const newHabit = {
       name: newHabitName,
       description: newHabitDescription,
-      days: 0,  // Aquí inicializas completedDays en 0
+      days: 0,
     };
 
-    // Enviar el nuevo hábito al backend
     fetch('http://localhost:5000/api/habits', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user?.token}`
       },
       body: JSON.stringify(newHabit),
     })
       .then((response) => response.json())
       .then((data) => {
-        // Actualizamos los hábitos con el nuevo hábito
-        dispatch(setHabits([...habits, data])); // Despachamos la acción para agregar el hábito a Redux
+        dispatch(setHabits([...habits, data]));
         setNewHabitName('');
         setNewHabitDescription('');
       })
       .catch((error) => console.error('Error al agregar hábito:', error));
   };
 
-  // Función para marcar como hecho
-  const handleMarkAsDone = (habitId: string) => {
-    dispatch(markAsDoneThunk(habitId)); // Despachamos la acción para marcar el hábito como completado
-  };
+  // Mostrar formulario de auth si no hay usuario
+  if (!user?.token) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="w-mid max-w-md bg-white p-8 rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold mb-6 text-center">
+            {isLoginView ? 'Iniciar Sesión' : 'Registrarse'}
+          </h1>
+          
+          
+            {authError && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+                Error: {authError}
+              </div>
+            )}
 
-  // Mostrar los hábitos en la interfaz
+          <div className="mb-4">
+            <label>Usuario</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className={styles.input}
+              placeholder="Ingresa tu usuario"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={styles.input}
+              placeholder="Ingresa tu contraseña"
+            />
+          </div>
+
+          <button
+            onClick={handleAuth}
+            className={styles.login}
+          >
+            {isLoginView ? 'Iniciar Sesión' : 'Registrarse'}
+          </button>
+          <br/>
+          <button
+            onClick={() => setIsLoginView(!isLoginView)}
+            className={styles.login}
+          >
+            {isLoginView ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar hábitos si está autenticado
   return (
-    
     <div className={`p-4 ${styles.habitsContainer}`}>
-      <h1>Mis Hábitos</h1>
+      <button 
+          onClick={() => dispatch({ type: 'user/logout' })}
+          className={styles.logout}
+        >
+          Cerrar Sesión
+        </button>
+      <div className="flex justify-between items-center mb-6"> 
+      
+        <h1 className="text-2xl font-bold">Mis Hábitos</h1>
+        
+      </div>
+
       {Array.isArray(habits) && habits.length > 0 ? (
-  habits.map((habit) => (
-    <div key={habit._id} className={styles.habitItem}>
-      <h2>{habit.name}</h2>
-      <p>{habit.description}</p>
-      <div className={styles.progressBarContainer}>
-  <div
-    className={styles.progressBar}
-    style={{
-      width: `${(habit.days / 66) * 100}%`, // Usa completedDays aquí
-       //backgroundColor: habit.days >= 66 ? "green" : habit.days >= 20 ? "yellow" : "red"
-    }}
-  />
-</div>
+        habits.map((habit) => (
+          <div key={habit._id} className={styles.habitItem}>
+            <h2 className="text-xl font-semibold">{habit.name}</h2>
+            <p className="text-gray-600">{habit.description}</p>
+            <div className={styles.progressBarContainer}>
+              <div
+                className={styles.progressBar}
+                style={{
+                  width: `${(habit.days / 66) * 100}%`,
+                  backgroundColor: habit.days >= 66 ? "#10B981" : habit.days >= 21 ? "#F59E0B" : "#EF4444"
+                }}
+              />
+            </div>
+            <p className="text-sm text-gray-500">{habit.days} días</p>
+            
+              <button
+                onClick={() => dispatch(markAsDoneThunk(habit._id))}
+                disabled={status[habit._id] === "loading"}
+                className={styles.buttontask}
+              >
+                {status[habit._id] === "loading" ? "Procesando..." : "Tarea Completada"}
+              </button>
 
-      <p>{habit.days} días</p>
-      <button
-        className={styles.buttontask}
-        onClick={() => dispatch(markAsDoneThunk(habit._id))}
-      >
-        {status[habit._id] === "loading" ? "Processing" : "Tarea Completada"}
-      </button>
-      {status[habit._id] === "failed" && <span >{err[habit._id]}</span>}
-      {status[habit._id] === "success" && <span >Tarea marcada como completada</span>}
-    </div>
-  ))
-) : (
-  <p>No hay hábitos para mostrar.</p>
-)}
+              {status[habit._id] === "failed" && (
+                <span className="text-red-500 text-sm">
+                  Error: {err[habit._id] || "No se pudo marcar"}
+                </span>
+              )}
+          </div>
+        ))
+      ) : (
+        <p className="text-gray-500">No hay hábitos para mostrar. ¡Agrega tu primer hábito!</p>
+      )}
 
-
-      {/* Formulario para agregar un nuevo hábito */}
-      <h2>Agregar Nuevo Hábito</h2>
-      <input
-        className={styles.input}
-        type="text"
-        placeholder="Nombre del hábito"
-        value={newHabitName}
-        onChange={(e) => setNewHabitName(e.target.value)}
-      />
-      <textarea
-        className={styles.inputd}
-        placeholder="Descripción del hábito"
-        value={newHabitDescription}
-        onChange={(e) => setNewHabitDescription(e.target.value)}
-      />
-      <button onClick={handleAddHabit} className={styles.addHabitBtn}>
-        Agregar Hábito
-      </button>
+      <div className="mt-8 border-t pt-6">
+        <h2 className="text-xl font-semibold mb-4">Agregar Nuevo Hábito</h2>
+        <input
+          className={styles.input}
+          type="text"
+          placeholder="Nombre del hábito"
+          value={newHabitName}
+          onChange={(e) => setNewHabitName(e.target.value)}
+        /><br/>
+        <textarea
+          className={styles.inputd}
+          placeholder="Descripción del hábito"
+          value={newHabitDescription}
+          onChange={(e) => setNewHabitDescription(e.target.value)}
+        /><br/>
+        <button 
+          onClick={handleAddHabit} 
+          className={styles.addHabitBtn}
+          disabled={!newHabitName.trim()}
+        >
+          Agregar Hábito
+        </button>
+      </div>
     </div>
   );
 }

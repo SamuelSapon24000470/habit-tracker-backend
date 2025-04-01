@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/Users');
 const jwt = require('jsonwebtoken');
 
+
 /* GET users listing. */
 router.get('/', function(req, res, next) {
   res.send('respond with a resource');
